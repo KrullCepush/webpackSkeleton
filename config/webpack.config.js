@@ -1,28 +1,30 @@
 const path = require("path");
+
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CleanTerminalPlugin = require("clean-terminal-webpack-plugin");
-
-const HOST = "localhost";
-const PORT = 3030;
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 const PATHS = {
-  src: path.join(__dirname, "./src"),
-  build: path.join(__dirname, "./build"),
-  components: path.join(__dirname, "./src/components"),
-  assets: path.join(__dirname, "./src/assets"),
-  pages: path.join(__dirname, "./src/pages"),
+  src: path.join(__dirname, "../src"),
+  build: path.join(__dirname, "../build"),
+  components: path.join(__dirname, "../src/components"),
+  assets: path.join(__dirname, "../src/assets"),
+  pages: path.join(__dirname, "../src/pages"),
 };
 
 module.exports = {
   entry: {
-    app: PATHS.src,
+    app: `${PATHS.src}/index.js`,
   },
   output: {
     path: PATHS.build,
-    filename: "index_bundle.js",
+    filename: "bundle.js",
+    publicPath: "/",
   },
   stats: "minimal",
+  mode: "development",
+
   plugins: [
     new MiniCssExtractPlugin({
       filename: "styles.css",
@@ -31,10 +33,16 @@ module.exports = {
       template: `${PATHS.src}/index.html`,
     }),
     new CleanTerminalPlugin({
-      message: `dev server running on http://${HOST}:${PORT}`,
+      message: `dev server running on http://local:3030`,
       onlyInWatchMode: false,
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: path.join(PATHS.src, "assets"), to: path.join("..", "build") },
+      ],
+    }),
   ],
+
   module: {
     rules: [
       {
@@ -82,20 +90,15 @@ module.exports = {
       },
     ],
   },
+
   resolve: {
-    modules: ["node_modules"],
+    modules: [path.resolve("node_modules"), "node_modules"],
     extensions: [".js", ".jsx", ".json", ".html"],
     alias: {
       "@components": PATHS.components,
       "@pages": PATHS.pages,
       "@assets": PATHS.assets,
+      "~": PATHS.src,
     },
-  },
-  devServer: {
-    contentBase: [PATHS.build],
-    compress: true,
-    port: PORT,
-    historyApiFallback: true,
-    noInfo: true,
   },
 };
